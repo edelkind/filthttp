@@ -1,0 +1,49 @@
+File Transfer over HTTP:
+
+A daemon for encrypted, authenticated, single-stream file transfer using
+readily-available tools.
+
+Designed with speed, configurability, and security in mind.
+
+TO BUILD:
+
+[set up lx_lib]
+$ curl -O http://www.episec.com/people/edelkind/arc/c/lx_lib-current.tar.gz
+$ tar xzf lx_lib-current.tar.gz
+$ cd lx_lib
+$ make
+$ cd ..
+
+[set up minilib]
+$ curl -O http://www.episec.com/people/edelkind/arc/c/minilib-current.tar.gz
+$ tar xzf minilib-current.tar.gz
+$ cd minilib
+$ make
+$ cd ..
+
+[set up structural get_opts]
+$ curl -O http://www.episec.com/people/edelkind/arc/c/get_opts-current.tar.gz
+$ tar xzf get_opts-current.tar.gz
+$ cd get_opts
+$ make
+$ cd ..
+
+
+[download filthttp (this package)]
+$ git clone http://github.com/edelkind/filthttp.git
+$ cd filthttp
+$ make
+$ cp filthttp /usr/sbin/                 # or wherever
+$ cp filthttp.1 /usr/share/man/man1      # or wherever
+
+
+TO RUN:
+
+$ man filthttp
+
+
+SEE ALSO:
+
+- The man page (also viewable by typing `nroff -man <filthttp.1` in the
+  source directory).
+- DESIGN (in the source directory)
