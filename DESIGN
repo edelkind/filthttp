@@ -1,0 +1,114 @@
+<overview>
+
+[stunnel]
+
+- Read header (root)
+
+- Store request, tokenize/hash header
+
+- collect login,pw
+
+- authenticate
+
+- chdir, chroot, drop uid
+
+- parse <request>
+
+
+
+<request>
+
+- GET?
+  - Is a directory?
+    - config?
+      ? generate index
+      ! error 404
+  - Is a file?
+    - send file || 403.
+
+- HEAD?
+  - GET, but only headers.
+    (can determine if file exists)
+
+- POST?
+  - Is a directory?
+    - error 404? 403?
+  - Is a file?
+    - config? create leading dirs (mode 755)?
+    - accept file, mode 644 (config?). (+umask)
+    - atomic:
+      - accept under current directory, with an apparent unique filename
+      - rename when complete.  If incomplete, leave for user to clean up.
+      - don't bother acquiring locks?  If user wants to break his upload, fine.
+
+
+- throttling
+  - global shared memory
+  - use semaphores with penalties
+  - can we share semaphores across a single user only, using a global
+    descriptor?
+
+Pseudocode:
+  
+
+- else? error 400.
+
+
+
+TO SUPPORT:
+  # indexes
+  - if-modified-since request header
+  # dates:
+    # current time of system
+    # last-modified timestamp of files
+    - receipt/parsing?
+  # delete files/directories
+    # files
+    # directories
+  - File accept should return 201/202/204, not 200
+  # options for writable/readable configs
+  - no clobber/delete?
+  - resume transfers?
+  - digest authentication?  (http 1.1)
+  - chunked encoding?
+  - throttling
+  - per-user throttling
+    - UL different from DL
+    - uses shared memory
+    - really per-homedir throttling
+  - tar of directories?
+  # include sizes in directory listings?
+
+  - what about file management? nonstandard methods?
+
+
+OPTIONS:
+  -c: explicit, global chroot dir
+  -u: explicit, global uid
+  -I: generate indices
+  -P: use pam (if compiled in)
+  -Uf: file umasks (default: 027)
+  -Ud: directory umasks (default: 027)
+  -put: service put requests
+  -get: service get requests
+  -head: service head requests
+  -x: set expire time to be immediate
+
+TO DO:
+  - implement POST requests
+  - error reporting
+    - clean up error reporting
+    - normalize, with instance ids
+  - debugging
+    - add debug info
+    # make debugging info a runtime option
+  - error responses
+    - sort out when to use html errors and when to just disconnect
+    - look at where to use 404 and where to use 403 or 500
+  - implement if-modified-since
+  - go through XXX notes
+  - implement throttling
+  - hide certain filename patterns, such as the .httd
+
+  - get_opts: implement '=[yes/y/1/no/n/0]' for booleans
+

@@ -1,0 +1,349 @@
+.TH filthttp 1
+.SH NAME
+filthttp \- The HTTP File Transfer Daemon
+.SH SYNOPSIS
+.B filthttp
+[
+\fIoptions
+]
+.
+.\" -----------------------------------
+.SH DESCRIPTION
+.\" -----------------------------------
+.
+.B filthttp
+is a minimalistic authenticated, multiuser HTTP server, designed for
+multiuser, bidirectional file transfer in a form that can be secure and
+easily scripted.  It reads from descriptor 0 and writes to descriptor 1, and
+is intended to be run behind a network service daemon such as stunnel or
+tcpserver.  Log data is sent to \fIstderr\fR.
+
+.B filthttp
+must be run as root.  As root, the following actions are performed, in
+order: Minimal parsing (most parsing is put off until after privileges have
+been dropped); user authentication; user authorization; chroot to the user's
+home directory; dropping of privileges.  Additional parsing and actions are
+performed as the user's own ID.
+
+Supported HTTP commands include
+.IR GET ,
+.IR POST ,
+.IR PUT ,
+and
+.IR DELETE .
+Only the relative path portion of the URL is considered relevant.
+
+All payload data is transferred in 8-bit format; uploaded data must conform
+to this as well.  No URL-encoded payload allowed, regardless of
+\fIContent-Type\fR.  Bad.  Outside!
+.
+.
+.\" -----------------------------------
+.SH "OPTIONS"
+.\" -----------------------------------
+.
+Options are parsed a la structural
+.BR get_opts (3).
+.TP
+.B -d \fIlevel
+Set debug level to \fIlevel\fP.
+.I level
+is calculated by the ORing of debug flags, as follows:
+.\"
+.de @TP
+.\" local indent for .TP
+.TP \\w'\\f[B]0x3_DEBUG_PRIVATE\\f[P]'u+2n
+..
+.P
+.RS
+.PD 0
+.@TP
+\fB0x1 \fIDEBUG_ACCESS
+Access logging
+.@TP
+\fB0x2 \fIDEBUG_INFO
+Informational data
+.@TP
+\fB0x4 \fIDEBUG_NOISE
+Lots of debugging noise
+.@TP
+\fB0x8 \fIDEBUG_PRIVATE
+Includes private data such as passwords
+.PD
+.P
+For informational and access log data, for example, the option
+.B -d\ 3
+could be used, or to log everything while debugging your installation,
+.BR -d\ 0xf .
+.RE
+.
+.TP
+.B -a
+(toggle) Atomic writes.  Files will be uploaded with an appendage of
+.IR .XXXXXX ,
+where \fIX\fR is replaced as specified in
+.BR mkstemp (3).
+When a file is fully uploaded, the temporary file is moved into place, and
+any previously existing file is removed implicitly; this is an atomic
+operation.  If the file cannot be fully uploaded or cannot be moved into
+place, the temporary file is removed.
+
+.B filthttp
+can tell whether the file has been fully uploaded because the
+.I Content-Length
+specifier is required for uploads.  If the system crashes or if
+.B filthttp
+is killed during an atomic upload, the temporary file will dangle until it
+is cleaned up by the user.
+.
+.TP
+.B -I
+(toggle) Generate an index page when the GET request specifies a directory
+as its location.
+.
+.TP
+.B -p
+(toggle) Create the full path for uploaded files if it does not exist.
+Without this option, an upload request to a nonexistent directory will
+result in a `403 forbidden' response.
+.
+.TP
+.B -m \fImode
+The default mode used for creating files (\fImode\fR & ~\fIumask\fR).
+Currently has no effect for atomic uploads, since
+.BR mkstemp (3)
+has no facility for passing mode.  \fImode\fR is an octal integer, and
+should be passed with a leading \fB0\fR on the command line.
+Default is \fB0660\fR.
+.
+.TP
+.B -U \fIuser
+Blacklist the specified user from access to the service.  See
+\fIAccess Resolution\fR,
+below.  This option may be given multiple times to blacklist multiple users.
+.
+.TP
+.B -u \fIuser
+Whitelist the specified user, to allow access to the service.  See
+\fIAccess Resolution\fR,
+below.  This option may be given multiple times to whitelist multiple users.
+.
+.TP
+.B -G \fIgroup
+Blacklist members of the specified group from access to the service.  See
+\fIAccess Resolution\fR,
+below.  This option may be given multiple times to blacklist multiple groups.
+.
+.TP
+.B -g \fIgroup
+Whitelist members of the specified group, to allow access to the service.  See
+\fIAccess Resolution\fR,
+below.  This option may be given multiple times to whitelist multiple groups.
+.
+.TP
+.B -r
+(toggle) Disable read access (except directory listings if -I is set).
+Attmepts to read will result in `403 forbidden' responses (if a file does
+not exist, `404 not found' will still be returned).
+.
+.TP
+.B -w
+(toggle) Disable write access, including PUT, POST, and DELETE requests.
+Attempts to write will result in `403 forbidden' responses.
+.
+.TP
+.B -S
+(toggle) Advertise the session ID (currently the PID of the process) in user
+responses.  This has information leakage implications, but can assist with
+user support.
+
+.B XXX: Currently unimplemented.
+.
+.TP
+.B -P
+(toggle) Use PAM instead of Unix authentication.  Only available if PAM
+support is compiled in.
+
+.B XXX: Currently unimplemented.
+.
+.TP
+.B -R \fIrealm
+Use \fIrealm\fR as the realm (i.e., the prompt) for HTTP Basic Auth.
+Default is \fBaccess\fR.
+.
+.
+.\" -----------------------------------
+.SH NOTES
+.\" -----------------------------------
+.
+.
+.\" -----------------------------------
+.SS Access Resolution
+.\" -----------------------------------
+Users are denied by default.  With no options given, no users will be able
+to access the service.  Once a user has been successfully authenticated,
+authorization checks are prioritized as follows:
+
+.RS
+1. user is explicitly blacklisted (deny)
+.br
+2. user is explicitly whitelisted (allow)
+.br
+3. user is a member of a group that is blacklisted (deny)
+.br
+4. user is a member of a group that is whitelisted (allow)
+.br
+5. default action (deny)
+.RE
+.\" .PD 0
+.\" .@TP
+.\" .I Blacklisted user
+.\" (deny)
+.\" .@TP
+.\" .I Whitelisted user
+.\" (allow)
+.\" .@TP
+.\" .I Blacklisted group
+.\" (deny)
+.\" .@TP
+.\" .I Whitelisted group
+.\" (allow)
+.\" .@TP
+.\" .I Default action
+.\" (deny)
+.\" .PD
+.P
+Authorization is resolved the instant the user is matched against a rule.
+.
+.
+.\" -----------------------------------
+.SS RFC compliance
+.\" -----------------------------------
+Only a small subset of RFC 1945 (HTTP 1.0) and RFC 2068 (HTTP 1.1) are
+implemented, which means
+.B filthttp
+is not really RFC-compliant as a web server (certain things \fBmust\fR be
+implemented, but aren't).  However, that which it does implement, it
+attempts to implement in full compliance with both specs.  The portions it
+does not implement should not affect general use.
+
+One inconsistency to note is that the protocol version is not parsed
+pre-authentication, so
+.B filthttp
+doesn't even know whether the protocol information is valid before it parses
+authentication headers and verifies the user.  Error responses are therefore
+statically assumed to use protocol 1.0.  This should not cause any problems
+and has been deemed an acceptable compromise by the author.
+.
+.
+.\" -----------------------------------
+.SH EXAMPLES
+.\" -----------------------------------
+.
+.
+.\" -----------------------------------
+.SS Running the Service
+.\" -----------------------------------
+Sample
+.I stunnel.conf
+for running the service over HTTPS (port 443 in this case):
+
+.nf
+  [filthttp]
+  accept = 443
+  exec = /usr/sbin/filthttp
+  execargs = filthttp -g xfer -I -p
+.fi
+
+Command line for running the service over HTTP using
+.BR tcpserver ,
+with atomic writes enabled, and logging to the
+.I /var/log/xferlog
+.B multilog
+logging directory:
+
+.nf
+  tcpserver 0 8080 \\
+      /usr/sbin/filthttp -g users -G noxfer -a -p 2>&1 \\
+      |multilog /var/log/xferlog
+.fi
+.
+.
+.\" -----------------------------------
+.SS Accessing with Clients
+.\" -----------------------------------
+Web browsers may, of course act as clients, and directory indices are
+generated in HTML format (yet are easily parsable using
+.B awk
+or 
+.BR sed ).
+Command-line clients, however, such as
+.B curl
+and
+.BR wget ,
+are recommended over browsers, as they are generally more flexible and
+scriptable.
+
+To retrieve a file using
+.BR wget ,
+you might try the following:
+
+.nf
+  wget --user=bob --password=stuff https://host:8443/path/file.zip
+.fi
+
+Or using
+.BR curl :
+
+.nf
+  curl -u bob -f -O https://host:8443/path/file.zip
+.fi
+
+To upload a file using
+.BR wget ,
+to the
+.I /some/path
+directory (which will be created if it doesn't exist and
+.B -p
+has been passed on the server command line):
+
+.nf
+  wget --user=bob --password=stuff -O - --post-file=file.zip \\
+      https://host:8443/some/path/file.zip
+.fi
+
+\... or
+.BR curl :
+
+.nf
+  curl -u bob -f -T file.zip https://host:8443/some/path/file.zip
+.fi
+
+Note that using
+.B curl --data-binary @file.zip
+is broken and should not be used.  It will work acceptably for small files,
+but it loads the entire file into memory before sending, which is
+inefficient and will break for larger files.
+.B curl -T
+uses the
+.I PUT
+method, which is accepted by
+.BR filthttp .
+
+To delete the file and its subdirectories (if empty), you might use:
+
+.nf
+  curl -u bob -f -X DELETE \\
+      https://host:8443/some/path/file.zip \\
+      https://host:8443/some/path \\
+      https://host:8443/some
+.fi
+.
+.
+.\" -----------------------------------
+.SH "SEE ALSO"
+.\" -----------------------------------
+get_opts(3),
+stunnel(8),
+curl(1),
+wget(1)
