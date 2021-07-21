@@ -1,10 +1,12 @@
 #define _XOPEN_SOURCE
 
-#include <lx_string.h>
+#include <crypt.h>
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
+
+#include <lx_string.h>
 
 #include "auth.h"
 #include "die.h"

@@ -20,8 +20,8 @@ LIBS = -lcrypt
 #WARNS = -Wall -Werror -Wextra -Wno-sign-compare -Wno-pointer-sign -Wno-missing-field-initializers
 #WARNS = -Wall -Werror -Wno-sign-compare 
 WARNS = -Wno-sign-compare 
-CFLAGS += -g $(WARNS) -I../lx_lib/lib -I../minilib -I../get_opts $(DEFINES)
-LDFLAGS += -L../lx_lib/lib -llx -L../minilib -lminilib -L../get_opts -lget_opts $(LIBS)
+CFLAGS += -g $(WARNS) -Ilx_lib/lib -Iminilib -Iget_opts $(DEFINES)
+LDFLAGS += -Llx_lib/lib -llx -Lminilib -lminilib -Lget_opts -lget_opts $(LIBS)
 
 all: filthttp
 

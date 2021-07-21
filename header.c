@@ -48,7 +48,7 @@ static inline int header_parse (blobset *header, lx_s *s)
     if (lx_chompf_ws(data)) die_nomem();
 
     lx_lowers(name, namelen);
-    if (blob_register(header, (ub1_t *)name, namelen, data, lx_destroy))
+    if (blob_register(header, (ub1_t *)name, namelen, data, (blob_destructor_fn_t)lx_destroy))
         die_nomem();
 
     return 0;
@@ -415,7 +415,7 @@ header_set(blobset *headers,
 
     if (!s || lx_striset(s, v, vlen)) die_nomem();
 
-    if (blob_register(headers, (unsigned char *)name, namelen, s, lx_destroy))
+    if (blob_register(headers, (unsigned char *)name, namelen, s, (blob_destructor_fn_t)lx_destroy))
         die_nomem();
 }
 

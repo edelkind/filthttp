@@ -1,0 +1,5 @@
+*.o
+filthttp
+get_opts
+lx_lib
+minilib

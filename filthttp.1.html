@@ -1,0 +1,455 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Wed Jul 21 21:41:56 2021 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>filthttp</title>
+
+</head>
+<body>
+
+<h1 align="center">filthttp</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#NOTES">NOTES</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">filthttp
+&minus; The HTTP File Transfer Daemon</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>filthttp</b>
+[ <i>options ]</i></p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><i><b>filthttp</b></i>
+is a minimalistic authenticated, multiuser HTTP server,
+designed for multiuser, bidirectional file transfer in a
+form that can be secure and easily scripted. It reads from
+descriptor 0 and writes to descriptor 1, and is intended to
+be run behind a network service daemon such as stunnel or
+tcpserver. Log data is sent to <i>stderr</i>.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>filthttp</b>
+must be run as root. As root, the following actions are
+performed, in order: Minimal parsing (most parsing is put
+off until after privileges have been dropped); user
+authentication; user authorization; chroot to the
+user&rsquo;s home directory; dropping of privileges.
+Additional parsing and actions are performed as the
+user&rsquo;s own ID.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Supported HTTP
+commands include <i>GET</i>, <i>POST</i>, <i>PUT</i>, and
+<i>DELETE</i>. Only the relative path portion of the URL is
+considered relevant.</p>
+
+<p style="margin-left:11%; margin-top: 1em">All payload
+data is transferred in 8-bit format; uploaded data must
+conform to this as well. No URL-encoded payload allowed,
+regardless of <i>Content-Type</i>. Bad. Outside!</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Options are
+parsed a la structural <b>get_opts</b>(3). <b><br>
+-d</b> <i>level</i></p>
+
+<p style="margin-left:22%;">Set debug level to
+<i>level</i>. <i>level</i> is calculated by the ORing of
+debug flags, as follows:</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="26%">
+
+
+<p><b>0x1</b> <i>DEBUG_ACCESS</i></p></td>
+<td width="3%"></td>
+<td width="49%">
+
+
+<p>Access logging</p></td></tr>
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="26%">
+
+
+<p><b>0x2</b> <i>DEBUG_INFO</i></p></td>
+<td width="3%"></td>
+<td width="49%">
+
+
+<p>Informational data</p></td></tr>
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="26%">
+
+
+<p><b>0x4</b> <i>DEBUG_NOISE</i></p></td>
+<td width="3%"></td>
+<td width="49%">
+
+
+<p>Lots of debugging noise</p></td></tr>
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="26%">
+
+
+<p><b>0x8</b> <i>DEBUG_PRIVATE</i></p></td>
+<td width="3%"></td>
+<td width="49%">
+
+
+<p>Includes private data such as passwords</p></td></tr>
+</table>
+
+<p style="margin-left:22%; margin-top: 1em">For
+informational and access log data, for example, the option
+<b>-d&nbsp;3</b> could be used, or to log everything while
+debugging your installation, <b>-d&nbsp;0xf</b>.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p style="margin-top: 1em"><b>-a</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p style="margin-top: 1em">(toggle) Atomic writes. Files
+will be uploaded with an appendage of <i>.XXXXXX</i>, where
+<i>X</i> is replaced as specified in <b>mkstemp</b>(3). When
+a file is fully uploaded, the temporary file is moved into
+place, and any previously existing file is removed
+implicitly; this is an atomic operation. If the file cannot
+be fully uploaded or cannot be moved into place, the
+temporary file is removed.</p></td></tr>
+</table>
+
+
+<p style="margin-left:22%; margin-top: 1em"><b>filthttp</b>
+can tell whether the file has been fully uploaded because
+the <i>Content-Length</i> specifier is required for uploads.
+If the system crashes or if <b>filthttp</b> is killed during
+an atomic upload, the temporary file will dangle until it is
+cleaned up by the user.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p style="margin-top: 1em"><b>-I</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p style="margin-top: 1em">(toggle) Generate an index page
+when the GET request specifies a directory as its
+location.</p> </td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p><b>-p</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p>(toggle) Create the full path for uploaded files if it
+does not exist. Without this option, an upload request to a
+nonexistent directory will result in a &lsquo;403
+forbidden&rsquo; response.</p></td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>-m</b> <i>mode</i></p>
+
+<p style="margin-left:22%;">The default mode used for
+creating files (<i>mode</i> &amp; ~<i>umask</i>). Currently
+has no effect for atomic uploads, since <b>mkstemp</b>(3)
+has no facility for passing mode. <i>mode</i> is an octal
+integer, and should be passed with a leading <b>0</b> on the
+command line. Default is <b>0660</b>.</p>
+
+<p style="margin-left:11%;"><b>-U</b> <i>user</i></p>
+
+<p style="margin-left:22%;">Blacklist the specified user
+from access to the service. See <i>Access Resolution</i>,
+below. This option may be given multiple times to blacklist
+multiple users.</p>
+
+<p style="margin-left:11%;"><b>-u</b> <i>user</i></p>
+
+<p style="margin-left:22%;">Whitelist the specified user,
+to allow access to the service. See <i>Access
+Resolution</i>, below. This option may be given multiple
+times to whitelist multiple users.</p>
+
+<p style="margin-left:11%;"><b>-G</b> <i>group</i></p>
+
+<p style="margin-left:22%;">Blacklist members of the
+specified group from access to the service. See <i>Access
+Resolution</i>, below. This option may be given multiple
+times to blacklist multiple groups.</p>
+
+<p style="margin-left:11%;"><b>-g</b> <i>group</i></p>
+
+<p style="margin-left:22%;">Whitelist members of the
+specified group, to allow access to the service. See
+<i>Access Resolution</i>, below. This option may be given
+multiple times to whitelist multiple groups.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p><b>-r</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p>(toggle) Disable read access (except directory listings
+if -I is set). Attmepts to read will result in &lsquo;403
+forbidden&rsquo; responses (if a file does not exist,
+&lsquo;404 not found&rsquo; will still be returned).</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p><b>-w</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p>(toggle) Disable write access, including PUT, POST, and
+DELETE requests. Attempts to write will result in &lsquo;403
+forbidden&rsquo; responses.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p><b>-S</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p>(toggle) Advertise the session ID (currently the PID of
+the process) in user responses. This has information leakage
+implications, but can assist with user support.</p></td></tr>
+</table>
+
+<p style="margin-left:22%; margin-top: 1em"><b>XXX:
+Currently unimplemented.</b></p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p style="margin-top: 1em"><b>-P</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p style="margin-top: 1em">(toggle) Use PAM instead of Unix
+authentication. Only available if PAM support is compiled
+in.</p> </td></tr>
+</table>
+
+<p style="margin-left:22%; margin-top: 1em"><b>XXX:
+Currently unimplemented.</b></p>
+
+<p style="margin-left:11%;"><b>-R</b> <i>realm</i></p>
+
+<p style="margin-left:22%;">Use <i>realm</i> as the realm
+(i.e., the prompt) for HTTP Basic Auth. Default is
+<b>access</b>.</p>
+
+<h2>NOTES
+<a name="NOTES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>Access
+Resolution</b> <br>
+Users are denied by default. With no options given, no users
+will be able to access the service. Once a user has been
+successfully authenticated, authorization checks are
+prioritized as follows:</p>
+
+<p style="margin-left:22%; margin-top: 1em">1. user is
+explicitly blacklisted (deny) <br>
+2. user is explicitly whitelisted (allow) <br>
+3. user is a member of a group that is blacklisted (deny)
+<br>
+4. user is a member of a group that is whitelisted (allow)
+<br>
+5. default action (deny)</p>
+
+<p style="margin-left:11%; margin-top: 1em">Authorization
+is resolved the instant the user is matched against a
+rule.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>RFC
+compliance</b> <br>
+Only a small subset of RFC 1945 (HTTP 1.0) and RFC 2068
+(HTTP 1.1) are implemented, which means <b>filthttp</b> is
+not really RFC-compliant as a web server (certain things
+<b>must</b> be implemented, but aren&rsquo;t). However, that
+which it does implement, it attempts to implement in full
+compliance with both specs. The portions it does not
+implement should not affect general use.</p>
+
+<p style="margin-left:11%; margin-top: 1em">One
+inconsistency to note is that the protocol version is not
+parsed pre-authentication, so <b>filthttp</b> doesn&rsquo;t
+even know whether the protocol information is valid before
+it parses authentication headers and verifies the user.
+Error responses are therefore statically assumed to use
+protocol 1.0. This should not cause any problems and has
+been deemed an acceptable compromise by the author.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>Running the
+Service</b> <br>
+Sample <i>stunnel.conf</i> for running the service over
+HTTPS (port 443 in this case):</p>
+
+<p style="margin-left:11%; margin-top: 1em">[filthttp] <br>
+accept = 443 <br>
+exec = /usr/sbin/filthttp <br>
+execargs = filthttp -g xfer -I -p</p>
+
+<p style="margin-left:11%; margin-top: 1em">Command line
+for running the service over HTTP using <b>tcpserver</b>,
+with atomic writes enabled, and logging to the
+<i>/var/log/xferlog</i> <b>multilog</b> logging
+directory:</p>
+
+<p style="margin-left:11%; margin-top: 1em">tcpserver 0
+8080 \ <br>
+/usr/sbin/filthttp -g users -G noxfer -a -p 2&gt;&amp;1 \
+<br>
+|multilog /var/log/xferlog</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Accessing
+with Clients</b> <br>
+Web browsers may, of course act as clients, and directory
+indices are generated in HTML format (yet are easily
+parsable using <b>awk</b> or <b>sed</b>). Command-line
+clients, however, such as <b>curl</b> and <b>wget</b>, are
+recommended over browsers, as they are generally more
+flexible and scriptable.</p>
+
+<p style="margin-left:11%; margin-top: 1em">To retrieve a
+file using <b>wget</b>, you might try the following:</p>
+
+<p style="margin-left:11%; margin-top: 1em">wget --user=bob
+--password=stuff https://host:8443/path/file.zip</p>
+
+<p style="margin-left:11%; margin-top: 1em">Or using
+<b>curl</b>:</p>
+
+<p style="margin-left:11%; margin-top: 1em">curl -u bob -f
+-O https://host:8443/path/file.zip</p>
+
+<p style="margin-left:11%; margin-top: 1em">To upload a
+file using <b>wget</b>, to the <i>/some/path</i> directory
+(which will be created if it doesn&rsquo;t exist and
+<b>-p</b> has been passed on the server command line):</p>
+
+<p style="margin-left:11%; margin-top: 1em">wget --user=bob
+--password=stuff -O - --post-file=file.zip \ <br>
+https://host:8443/some/path/file.zip</p>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>curl</b>:</p>
+
+<p style="margin-left:11%; margin-top: 1em">curl -u bob -f
+-T file.zip https://host:8443/some/path/file.zip</p>
+
+<p style="margin-left:11%; margin-top: 1em">Note that using
+<b>curl --data-binary @file.zip</b> is broken and should not
+be used. It will work acceptably for small files, but it
+loads the entire file into memory before sending, which is
+inefficient and will break for larger files. <b>curl -T</b>
+uses the <i>PUT</i> method, which is accepted by
+<b>filthttp</b>.</p>
+
+<p style="margin-left:11%; margin-top: 1em">To delete the
+file and its subdirectories (if empty), you might use:</p>
+
+<p style="margin-left:11%; margin-top: 1em">curl -u bob -f
+-X DELETE \ <br>
+https://host:8443/some/path/file.zip \ <br>
+https://host:8443/some/path \ <br>
+https://host:8443/some</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">get_opts(3),
+stunnel(8), curl(1), wget(1)</p>
+<hr>
+</body>
+</html>

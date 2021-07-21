@@ -24,7 +24,7 @@ extern struct auth_method_set *auth_methods;
 extern int authenticated;
 
 /* system authentication (will be default) */
-struct auth_method_set sys_auth_method_set;
+extern struct auth_method_set sys_auth_method_set;
 extern int sys_auth_verify(struct passwd **, char *, char *);
 extern int sys_auth_validate_user(struct passwd *, struct validation *);
 
