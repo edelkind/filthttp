@@ -48,6 +48,6 @@ $ man filthttp
 
 SEE ALSO:
 
-- [`filthttp(1)`](filthttp.1.html) (also viewable by typing `nroff -man <filthttp.1` in the
+- [`filthttp(1)`](https://edelkind.github.io/filthttp/filthttp.1.html) (also viewable by typing `nroff -man <filthttp.1` in the
   source directory).
 - [DESIGN](DESIGN) (in the source directory)
