@@ -1,17 +1,17 @@
 debuglevel = 3
 
 FTD_OBJ =              \
-	auth.o         \
-	base64.o       \
-	die.o          \
-	fs.o           \
-	global.o       \
-	header.o       \
-	index.o        \
-	main.o         \
-	priv.o         \
-	req.o          \
-	resp.o         \
+	src/auth.o         \
+	src/base64.o       \
+	src/die.o          \
+	src/fs.o           \
+	src/global.o       \
+	src/header.o       \
+	src/index.o        \
+	src/main.o         \
+	src/priv.o         \
+	src/req.o          \
+	src/resp.o         \
 
 
 DEFINES = -DDEBUGLEVEL=$(debuglevel)
