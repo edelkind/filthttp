@@ -9,25 +9,25 @@ Designed with speed, configurability, and security in mind.
 
 download filthttp (this package)
 ```bash
-$ git clone http://github.com/edelkind/filthttp
+$ git clone https://github.com/edelkind/filthttp
 $ cd filthttp
 ```
 
 set up lx\_lib
 ```bash
-$ git clone http://github.com/edelkind/lx_lib
+$ git clone https://github.com/edelkind/lx_lib
 $ (cd lx_lib && make)
 ```
 
 set up minilib
 ```bash
-$ git clone http://github.com/edelkind/minlib
+$ git clone https://github.com/edelkind/minlib
 $ (cd minilib && make)
 ```
 
 set up structural get\_opts
 ```bash
-$ git clone http://github.com/edelkind/get_opts
+$ git clone https://github.com/edelkind/get_opts
 $ (cd get_opts && make)
 ```
 
